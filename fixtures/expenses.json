@@ -3,6 +3,11 @@
     "id": "exp_001",
     "label": "Clean baseline — Staples, known vendor, clean employee",
     "expected_route": "approve",
+    "expected_tools": {
+      "must_include": ["check_receipt_coherence"],
+      "must_not_include": ["draft_clarification"],
+      "notes": "Clean expense. Coherence check is sufficient. Other tools are optional but not required."
+    },
     "expense": {
       "employee_id": "emp_42",
       "vendor": "Staples",
@@ -17,6 +22,11 @@
     "id": "exp_002",
     "label": "Hero case — emp_17 structuring pattern, Best Buy",
     "expected_route": "flag",
+    "expected_tools": {
+      "must_include": ["check_employee_pattern"],
+      "must_not_include": [],
+      "notes": "The structuring pattern is the entire point of this case. check_employee_pattern MUST be called or the fraud is missed."
+    },
     "expense": {
       "employee_id": "emp_17",
       "vendor": "Best Buy Business",
@@ -31,6 +41,11 @@
     "id": "exp_003",
     "label": "Typosquat — Stapels (one letter off Staples)",
     "expected_route": "clarify",
+    "expected_tools": {
+      "must_include": ["verify_vendor"],
+      "must_not_include": [],
+      "notes": "Typosquat detection requires verify_vendor. Skipping it would silently approve a likely fraud."
+    },
     "expense": {
       "employee_id": "emp_42",
       "vendor": "Stapels",
@@ -45,6 +60,11 @@
     "id": "exp_004",
     "label": "Memo/receipt mismatch — weekend liquor with 'client lunch' memo",
     "expected_route": "flag",
+    "expected_tools": {
+      "must_include": ["check_receipt_coherence"],
+      "must_not_include": [],
+      "notes": "The mismatch IS the case. check_receipt_coherence MUST be called."
+    },
     "expense": {
       "employee_id": "emp_42",
       "vendor": "Total Wine and More",
@@ -59,6 +79,11 @@
     "id": "exp_005",
     "label": "New hire + new vendor — no history, clean memo, modest amount",
     "expected_route": "clarify",
+    "expected_tools": {
+      "must_include": ["check_employee_pattern", "verify_vendor"],
+      "must_not_include": [],
+      "notes": "The whole point of this case is testing whether the agent uses absence-of-evidence signals. It must check the employee pattern (will return 'no history') and verify the vendor (will return 'not in list')."
+    },
     "expense": {
       "employee_id": "emp_99",
       "vendor": "Cordova Brothers Coffee Roasters",
