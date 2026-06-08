@@ -40,5 +40,33 @@
       "memo": "Printer paper and pens for Q3 reports",
       "receipt_text": "STAPELS #4471 PAPER 30LB CASE 28.99 PENS BIC 12pk 14.20 TONER REPLACEMENT 9.00 TOTAL 52.18"
     }
+  },
+  {
+    "id": "exp_004",
+    "label": "Memo/receipt mismatch — weekend liquor with 'client lunch' memo",
+    "expected_route": "flag",
+    "expense": {
+      "employee_id": "emp_42",
+      "vendor": "Total Wine and More",
+      "amount": 184.67,
+      "date": "2026-05-17",
+      "category": "meals_entertainment",
+      "memo": "Client lunch with prospect ABC Corp to discuss Q3 contract",
+      "receipt_text": "TOTAL WINE AND MORE — STORE 2147 — 2026-05-17 SAT 23:14 — CABERNET SAUVIGNON BTL 89.99 BOURBON WHISKEY BTL 67.50 SODA WATER 12pk 14.99 — SUBTOTAL 172.48 TAX 12.19 TOTAL 184.67"
+    }
+  },
+  {
+    "id": "exp_005",
+    "label": "New hire + new vendor — no history, clean memo, modest amount",
+    "expected_route": "clarify",
+    "expense": {
+      "employee_id": "emp_99",
+      "vendor": "Cordova Brothers Coffee Roasters",
+      "amount": 38.50,
+      "date": "2026-05-21",
+      "category": "meals_entertainment",
+      "memo": "Coffee meeting with potential partner Maria Chen from Northstar Logistics",
+      "receipt_text": "CORDOVA BROTHERS COFFEE ROASTERS — 2026-05-21 — CAPPUCCINO x2 13.00 BREAKFAST SANDWICH x2 22.00 TIP 3.50 TOTAL 38.50"
+    }
   }
 ]
