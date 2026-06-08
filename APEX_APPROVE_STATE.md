@@ -1,58 +1,73 @@
 # APEX Approve — Working State
-Last updated: Mon Jun 8, 2026 — end of Day 1
+Last updated: Mon Jun 8, 2026 — end of Day 1 (lol)
 
 ## Where things live
 - Repo: github.com/woadi-vector/gemini-hackathon
-- Codespace: woadi-vector/gemini-hackathon (name: crispy-meme)
+- Codespace: woadi-vector/gemini-hackathon (crispy-meme)
 - Phoenix workspace: https://app.phoenix.arize.com/s/jason-wold
 - Phoenix project: apex-approve
-- Model: gemini-2.5-flash via Vertex AI
+- Model: gemini-2.5-flash (agent) + gemini-2.5-pro (judge) via Vertex AI
 - GCP project: apex-approve (project number 618384338123)
 - Auth: gcloud application-default credentials (jmanw4@gmail.com)
-- Secrets: in Codespaces secrets (PHOENIX_API_KEY, PHOENIX_COLLECTOR_ENDPOINT, GOOGLE_API_KEY [unused now])
+- Vertex spend so far: well under $1 across all runs
 
-## Stack working
-- Python 3.12.1 + uv
-- google-adk + phoenix.otel + openinference-instrumentation
-- Vertex AI (gemini-2.5-flash) — no rate limit issues on $300 credit
-- 4 tools registered, all called by agent at least once
-- Phoenix traces every call cleanly with planner + tool spans
+## Stack
+- Python 3.12 + uv
+- google-adk + phoenix.otel + openinference-instrumentation (with explicit GoogleGenAIInstrumentor for nested sub-call spans)
+- arize-phoenix 15.2.0 + arize-phoenix-evals 3.0.0
+- Vertex AI for both agent and judge
 
-## Validated fixtures (Day 1 — 5 cases)
-- exp_001 (clean baseline): routed clarify, expected approve. Stub coherence too aggressive. Day 3 fix.
-- exp_002 (HERO CASE — structuring): routed flag correctly. Demo center.
-- exp_003 (typosquat): routed clarify correctly. Agent named both spellings.
-- exp_004 (memo/receipt mismatch, liquor store as 'client lunch'): routed clarify, expected flag. Agent caught all the signals but was conservative. Day 3 prompt tune: push toward flag when combination of signals is strong.
-- exp_005 (no employee history, no known vendor): routed clarify correctly. Uncertainty-asks-a-question principle held perfectly.
+## What works
+- ADK agent with 4 registered tools, 3 of which use Gemini sub-calls
+- Three-level nested Phoenix traces (planner → tool → sub-LLM)
+- 5 validated fixtures with expected_route and expected_tools ground truth
+- Batch fixture runner (fixtures/run_fixtures.py)
+- Three Phoenix LLM-as-a-Judge evals (routing, tool selection, reasoning specificity)
+- Unified eval runner that runs all three evals in parallel per fixture
+- Pro as judge, Flash as agent (honest asymmetry)
+- All evals persist scores to Phoenix Cloud as queryable traces
+- Tool upgrade demonstrably catches regressions (exp_005)
 
-3 exact-match, 2 conservative-but-defensible. Both misses lean toward asking-the-human rather than auto-deciding. Frame as strength in demo.
+## Tool status
+- verify_vendor: GEMINI SUB-CALL (fuzzy matching against known list)
+- check_receipt_coherence: GEMINI SUB-CALL (semantic comparison)
+- draft_clarification: GEMINI SUB-CALL (tailored question generation)
+- check_employee_pattern: DELIBERATE STUB (structuring detection logic is the hero case driver — Gemini upgrade would weaken the demo)
 
-## Status
-- [x] Codespace + Vertex environment
-- [x] approve_demo/ scaffolded
-- [x] 4 stub tools with meaningful logic
-- [x] expense_triage prompt with anti-flattery + never-auto-reject + system-flags-humans-decide
-- [x] main.py wired to apex_approve agent
-- [x] Phoenix tracing live
-- [x] 3 fixture expenses + batch runner script
-- [x] Hero demo case validated
-- [ ] Day 2: real planner stress test, more fixtures (5-7 total), output schema fix
-- [ ] Day 3: replace stubs with real Gemini sub-calls
-- [ ] Day 4: Phoenix LLM-as-a-Judge evals
-- [ ] Day 5: UI + demo video
-- [ ] Day 6: submit (Thu Jun 11, target 12 PM CDT)
+## Latest eval results (5 fixtures, all 3 evals)
+- exp_001 (Staples baseline): PASS / PASS / GOOD
+- exp_002 (HERO — emp_17 structuring): PASS / PASS / EXCELLENT
+- exp_003 (Stapels typosquat): PASS / PASS / EXCELLENT
+- exp_004 (liquor "client lunch" mismatch): PASS / PASS / EXCELLENT
+- exp_005 (no history, no known vendor): FAIL / FAIL / EXCELLENT  ← consistent regression case
+- Aggregates: routing 0.80, tool_selection 0.80, reasoning 0.93
 
-## Known issues / Day 2 work
-- AGENT OUTPUT SCHEMA DRIFT: model uses 'route' sometimes, 'outcome' other times; field names vary by run. Day 2 fix: tighten prompt to require exact field names, or use ADK structured output config to enforce JSON schema at API level.
-- STUB COHERENCE TOO AGGRESSIVE: check_receipt_coherence fires "low keyword overlap" on legitimately coherent expenses. Day 3 fix: replace keyword overlap with Gemini semantic comparison sub-call.
-- "Could not infer collector endpoint protocol" warning: cosmetic; doesn't break tracing.
-- main.py event printer is naive (function_call parts skipped). Cosmetic.
+## The demo's hero artifact
+exp_005 fails both binary evals because the agent skipped check_employee_pattern after the verify_vendor upgrade. Phoenix's eval caught it. Without observability, this regression would be invisible until a real expense slipped through. Reasoning eval scored EXCELLENT despite the wrong answer — surface quality ≠ correctness.
 
-## Demo plan (preserved)
-- Beat 1 (0:00–0:30): clerk's queue with several expenses
-- Beat 2 (0:30–1:30): click emp_17 hero case, show planner choosing tools, show Phoenix trace tree, show structuring catch
-- Beat 3 (1:30–2:30): Phoenix LLM-as-a-Judge evals scoring the agent's reasoning — Phoenix as the judge of the agent's judgment
+## Day 5 (Tue Jun 9) targets
+- Phoenix dashboard exploration — make sure scored runs render cleanly in Tracing view for screenshot capture
+- README writeup (Apache 2.0 license, eval architecture diagram)
+- Demo script outline
+- Lovable UI (separate project pointing at Cloud Run endpoint)
+- Cloud Run deployment
+
+## Day 6 (Wed Jun 10) targets
+- Polish UI
+- Record demo video (target under 3 min)
+- Final testing
+
+## Day 7 (Thu Jun 11) submit
+- Devpost submission by 12:00 PM CDT (4-hour buffer before 4 PM deadline)
+
+## Known issues (deferred)
+- check_employee_pattern still deterministic stub by design
+- "Could not infer collector endpoint protocol" warning (cosmetic)
+- main.py event printer skips function_call parts (cosmetic)
+- Reasoning eval consistently scores exp_005 high despite wrong answer — demo talking point, not a bug
 
 ## Next session pickup
-- cd /workspaces/gemini-hackathon
-- gcloud auth application-default
+1. cd /workspaces/gemini-hackathon
+2. gcloud auth application-default login --no-launch-browser  (only if Vertex creds expired)
+3. uv run python evals/run_evals.py  (smoke test full pipeline still works)
+4. Then start Day 5 polish work
