@@ -18,10 +18,14 @@ Last updated: Mon Jun 8, 2026 — end of Day 1
 - 4 tools registered, all called by agent at least once
 - Phoenix traces every call cleanly with planner + tool spans
 
-## Validated fixtures (Day 1)
-- exp_001 (clean baseline emp_42 / Staples): routed to clarify (expected approve — stub coherence tool too aggressive on keyword overlap, Day 3 fix)
-- exp_002 (HERO CASE emp_17 / Best Buy structuring): routed to flag correctly. The agent reasoned about three prior $480-ish expenses, named the threshold, weighed coherence against structuring, and chose the more serious signal. This is the demo's center.
-- exp_003 (Stapels typosquat): routed to clarify correctly. Agent named both spellings and used the word "typosquat" in reasoning. Drafted a specific question to the submitter.
+## Validated fixtures (Day 1 — 5 cases)
+- exp_001 (clean baseline): routed clarify, expected approve. Stub coherence too aggressive. Day 3 fix.
+- exp_002 (HERO CASE — structuring): routed flag correctly. Demo center.
+- exp_003 (typosquat): routed clarify correctly. Agent named both spellings.
+- exp_004 (memo/receipt mismatch, liquor store as 'client lunch'): routed clarify, expected flag. Agent caught all the signals but was conservative. Day 3 prompt tune: push toward flag when combination of signals is strong.
+- exp_005 (no employee history, no known vendor): routed clarify correctly. Uncertainty-asks-a-question principle held perfectly.
+
+3 exact-match, 2 conservative-but-defensible. Both misses lean toward asking-the-human rather than auto-deciding. Frame as strength in demo.
 
 ## Status
 - [x] Codespace + Vertex environment
