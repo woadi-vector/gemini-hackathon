@@ -1,0 +1,44 @@
+[
+  {
+    "id": "exp_001",
+    "label": "Clean baseline — Staples, known vendor, clean employee",
+    "expected_route": "approve",
+    "expense": {
+      "employee_id": "emp_42",
+      "vendor": "Staples",
+      "amount": 47.32,
+      "date": "2026-05-15",
+      "category": "office_supplies",
+      "memo": "Pens and notebooks for new hire onboarding",
+      "receipt_text": "STAPLES #1234 PENS x3 NOTEBOOK x2 TOTAL 47.32"
+    }
+  },
+  {
+    "id": "exp_002",
+    "label": "Hero case — emp_17 structuring pattern, Best Buy",
+    "expected_route": "flag",
+    "expense": {
+      "employee_id": "emp_17",
+      "vendor": "Best Buy Business",
+      "amount": 485.00,
+      "date": "2026-05-23",
+      "category": "equipment",
+      "memo": "Replacement headset and webcam for remote setup",
+      "receipt_text": "BEST BUY BUSINESS LOGITECH HEADSET 199.00 LOGITECH WEBCAM 286.00 TOTAL 485.00"
+    }
+  },
+  {
+    "id": "exp_003",
+    "label": "Typosquat — Stapels (one letter off Staples)",
+    "expected_route": "clarify",
+    "expense": {
+      "employee_id": "emp_42",
+      "vendor": "Stapels",
+      "amount": 52.18,
+      "date": "2026-05-20",
+      "category": "office_supplies",
+      "memo": "Printer paper and pens for Q3 reports",
+      "receipt_text": "STAPELS #4471 PAPER 30LB CASE 28.99 PENS BIC 12pk 14.20 TONER REPLACEMENT 9.00 TOTAL 52.18"
+    }
+  }
+]
