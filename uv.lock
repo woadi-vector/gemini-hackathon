@@ -921,6 +921,7 @@ dependencies = [
     { name = "google-adk" },
     { name = "google-genai" },
     { name = "openinference-instrumentation-google-adk" },
+    { name = "openinference-instrumentation-google-genai" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
     { name = "python-dotenv" },
@@ -932,6 +933,7 @@ requires-dist = [
     { name = "google-adk", specifier = ">=1.32.0" },
     { name = "google-genai", specifier = ">=1.9.0" },
     { name = "openinference-instrumentation-google-adk", specifier = ">=0.1.11" },
+    { name = "openinference-instrumentation-google-genai", specifier = ">=1.0.2" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.27.0" },
     { name = "opentelemetry-sdk", specifier = ">=1.27.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
@@ -2432,7 +2434,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation"
-version = "0.1.48"
+version = "0.1.53"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-semantic-conventions" },
@@ -2440,9 +2442,9 @@ dependencies = [
     { name = "opentelemetry-sdk" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f9/6b/2f5bf4bb23f96f62d774af3edd2437de99fa70639eb755e4692d922a67f3/openinference_instrumentation-0.1.48.tar.gz", hash = "sha256:7682bf713a653f02e4d7c3cd3087482fa543f69d1f610418fae6f346327d25b0", size = 23936, upload-time = "2026-04-29T00:34:06.372Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f9/b6/c0e7e047ae4962f2755a3bc9141fdd6272c75c74e47dfc6aa71978a9b78f/openinference_instrumentation-0.1.53.tar.gz", hash = "sha256:3c0c145cf6e13cfa630b29d0e3ca806f3821470ffca7922f1590e3970fadd4da", size = 33712, upload-time = "2026-06-02T16:37:21.771Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/9f/e6fd710e214e85181077e21ee593c92f274ff3cddf5b32866c903c156003/openinference_instrumentation-0.1.48-py3-none-any.whl", hash = "sha256:aea9ca69abf11fb5a19195a16be81e2d2ca1f3a90b73b8f67df3006665f5d2b2", size = 30121, upload-time = "2026-04-29T00:34:05.318Z" },
+    { url = "https://files.pythonhosted.org/packages/13/bb/01262d9945c476e15aa21bb9ca05b18604e525d73d9761cadb677f485198/openinference_instrumentation-0.1.53-py3-none-any.whl", hash = "sha256:f43695080eded47b1e03ff1b19cb5c23ea4409459cfe16c5b5748d5656832eb1", size = 40958, upload-time = "2026-06-02T16:37:20.69Z" },
 ]
 
 [[package]]
@@ -2461,6 +2463,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/79/7e/a6a6c7dc7bd01e098374cdee69b10b6586d2f7a481ed34f8a283fcbfd830/openinference_instrumentation_google_adk-0.1.11.tar.gz", hash = "sha256:b36310d4e8b8143d41fe5c74be04c09f367710ec8019471f232bb721ede143b1", size = 14473, upload-time = "2026-05-05T06:43:34.828Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/51/0d4df97fd0fb3ac2282dc268e9a11f82523f881e623264291d6abf2fd5ed/openinference_instrumentation_google_adk-0.1.11-py3-none-any.whl", hash = "sha256:8dd546f9db3a6589106287b8a99b99f06361ac95e6e0b32305e6ce1a76f98630", size = 16384, upload-time = "2026-05-05T06:43:33.836Z" },
+]
+
+[[package]]
+name = "openinference-instrumentation-google-genai"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openinference-instrumentation" },
+    { name = "openinference-semantic-conventions" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-semantic-conventions" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/c4/52e9b262e840cac5f0e22277fc5d0528acf562778e180e13878bed8b3ce2/openinference_instrumentation_google_genai-1.0.2.tar.gz", hash = "sha256:e1667fa6b18be3b54fdb5b5885c4e21a80de5de09651f626a5e78b93ca1f8126", size = 133429, upload-time = "2026-05-18T18:51:37.149Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/b9/20a39466f66e94c05498b069b71f8b7d7bab6dc05dde532c8ef80069f203/openinference_instrumentation_google_genai-1.0.2-py3-none-any.whl", hash = "sha256:b27b0c995551e55e688663c32e67b7ab9c4b93c89b69f9d7679fc7a026ccb2ae", size = 32700, upload-time = "2026-05-18T18:51:33.04Z" },
 ]
 
 [[package]]

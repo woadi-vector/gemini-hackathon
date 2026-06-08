@@ -1,7 +1,45 @@
 # Copyright 2026 Vector Research Labs. Apache-2.0.
-"""Receipt/memo coherence check — does the stated business purpose match what was actually purchased?"""
+"""Receipt/memo coherence check — uses Gemini sub-call for semantic comparison."""
 
+from __future__ import annotations
+
+import os
 from google.adk.tools import ToolContext
+from google import genai
+
+
+# Lazy-init the genai client so import is cheap and env is loaded by the time we call.
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(
+            vertexai=os.environ.get("GOOGLE_GENAI_USE_VERTEXAI") == "1",
+            project=os.environ.get("GOOGLE_CLOUD_PROJECT"),
+            location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+        )
+    return _client
+
+
+_COHERENCE_PROMPT = """You are evaluating whether an expense memo (stated business purpose) is coherent with what a receipt actually shows.
+
+MEMO:
+{memo}
+
+RECEIPT:
+{receipt_text}
+
+Output ONLY a JSON object with these fields (no markdown fences, no prose):
+{{
+  "coherent": true | false,
+  "confidence": <0.0 to 1.0>,
+  "reasoning": "<one sentence citing specific items, amounts, or times from the receipt that support or contradict the memo>"
+}}
+
+Be strict. A "client lunch" memo with a liquor-store receipt at 11pm is NOT coherent. A "client lunch" memo with a coffee-shop receipt during business hours IS coherent. Cite specific evidence.
+"""
 
 
 async def check_receipt_coherence(
@@ -9,14 +47,13 @@ async def check_receipt_coherence(
 ) -> str:
     """Compare the stated business purpose against what the receipt actually shows.
 
-    Use this tool when the expense includes both a memo (the employee's stated
-    business purpose) and receipt_text (OCR or itemized line items). The point
-    is to catch mismatches: a memo says "client lunch" but the receipt is from
-    a liquor store at 11pm, or a memo says "office supplies" but the receipt
-    shows personal electronics.
+    Uses a Gemini sub-call to semantically compare the memo and receipt, rather
+    than crude keyword matching. Catches cases like a "client lunch" memo paired
+    with a liquor-store receipt at 11pm — the kind of mismatch where the words
+    might overlap but the meaning doesn't.
 
-    Skip this tool when the expense has no receipt text or no memo — there's
-    nothing to compare.
+    Use this tool when the expense includes both a memo and receipt_text. Skip
+    when either is missing or trivially short.
 
     Args:
       memo: The employee's stated business purpose for the expense.
@@ -24,53 +61,42 @@ async def check_receipt_coherence(
       tool_context: ADK tool context (unused).
 
     Returns:
-      Text describing whether memo and receipt are coherent, listing any
-      specific mismatches with the exact tokens that triggered the flag, and
-      a confidence score between 0.0 and 1.0.
+      Text describing whether memo and receipt are semantically coherent,
+      grounded in specific evidence from the receipt, with a confidence score.
     """
-    # STUB — replace Day 3 with a Gemini sub-call doing real semantic comparison
-
-    memo_lower = memo.lower() if memo else ""
-    receipt_lower = receipt_text.lower() if receipt_text else ""
-
-    if not memo_lower or not receipt_lower:
+    if not memo or not memo.strip() or not receipt_text or not receipt_text.strip():
         return (
-            "Cannot compare coherence — either memo or receipt is missing. "
+            "Cannot evaluate coherence — either memo or receipt is missing or empty. "
             "Confidence: 0.30."
         )
 
-    # Crude keyword-overlap heuristic for Day 1 stub.
-    # Real version: Gemini semantic comparison.
-    memo_words = set(w.strip(".,;:!?") for w in memo_lower.split() if len(w) > 3)
-    receipt_words = set(w.strip(".,;:!?") for w in receipt_lower.split() if len(w) > 3)
-
-    if not memo_words:
-        return "Memo too short to evaluate coherence. Confidence: 0.40."
-
-    overlap = memo_words & receipt_words
-    overlap_ratio = len(overlap) / len(memo_words)
-
-    # Detect potentially incoherent expense type signals
-    personal_signals = {"alcohol", "wine", "beer", "liquor", "tobacco", "cigarette"}
-    business_signals = {"office", "client", "meeting", "supplies", "travel", "lodging"}
-
-    personal_hits = personal_signals & receipt_words
-    business_hits = business_signals & memo_words
-
-    if business_hits and personal_hits:
+    if len(memo.strip()) < 10 or len(receipt_text.strip()) < 10:
         return (
-            f"COHERENCE FLAG: memo states business purpose ({', '.join(business_hits)}) "
-            f"but receipt contains personal-purchase signals ({', '.join(personal_hits)}). "
-            f"Recommend routing to clarify. Confidence: 0.80."
+            "Memo or receipt too short to evaluate coherence reliably. "
+            "Confidence: 0.40."
         )
 
-    if overlap_ratio >= 0.3:
-        return (
-            f"Memo and receipt appear coherent. Shared terms: {', '.join(sorted(overlap)[:5])}. "
-            f"Confidence: 0.85."
-        )
+    client = _get_client()
+    prompt = _COHERENCE_PROMPT.format(memo=memo, receipt_text=receipt_text)
 
-    return (
-        f"Memo and receipt have low keyword overlap ({len(overlap)}/{len(memo_words)} terms). "
-        f"Coherence is unclear without deeper review. Confidence: 0.55."
-    )
+    try:
+        response = await client.aio.models.generate_content(
+            model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+            contents=prompt,
+        )
+        result_text = response.text.strip() if response.text else ""
+        # Strip code fences if the model added them despite instructions
+        if result_text.startswith("```"):
+            lines = result_text.split("\n")
+            result_text = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
+
+        return f"Coherence analysis (Gemini semantic comparison):\n{result_text}"
+
+    except Exception as e:
+        # If the sub-call fails, fall back to a low-confidence "unknown" rather than
+        # silently passing or auto-flagging. Never approve on uncertainty.
+        return (
+            f"Coherence check failed due to error: {type(e).__name__}. "
+            f"Cannot determine coherence. Confidence: 0.30. "
+            f"Recommend routing to clarify."
+        )
