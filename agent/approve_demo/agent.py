@@ -13,6 +13,7 @@ from approve_demo.tools.verify_vendor import verify_vendor
 from approve_demo.tools.check_employee_pattern import check_employee_pattern
 from approve_demo.tools.check_receipt_coherence import check_receipt_coherence
 from approve_demo.tools.draft_clarification import draft_clarification
+from approve_demo.tools.review_past_decisions import review_past_decisions
 
 # Ensure ADK CLI runs (`adk run approve_demo`) load local env and tracing.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -29,5 +30,6 @@ root_agent = Agent(
         FunctionTool(func=check_employee_pattern),
         FunctionTool(func=check_receipt_coherence),
         FunctionTool(func=draft_clarification),
+        FunctionTool(func=review_past_decisions),
     ],
 )
