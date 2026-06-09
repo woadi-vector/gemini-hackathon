@@ -27,19 +27,21 @@ APEX Approve makes that question answerable. Three LLM-as-a-Judge evals run on e
 The hero artifact: a fixture (`exp_005`) where the agent gathers all five tools' worth of evidence, including a Phoenix MCP query of its own historical traces, reasons in clean specific language — and still routes wrong. Both binary evals catch it. The reasoning eval scores EXCELLENT because the language *is* anchored. Surface quality ≠ correctness, and only the eval pipeline tells you the difference.
 
 ## Architecture
+
 ```
 agent_run [apex_approve_agent — Gemini 2.5 Flash on Vertex]
-└── call_llm (planner)
-├── execute_tool verify_vendor
-│   └── AsyncGenerateContent (Gemini sub-call)
+  └── call_llm (planner)
+      ├── execute_tool verify_vendor
+      │   └── AsyncGenerateContent (Gemini sub-call)
+      ├── execute_tool check_receipt_coherence
+      │   └── AsyncGenerateContent (Gemini sub-call)
+      ├── execute_tool check_employee_pattern (deterministic — by design)
+      ├── execute_tool review_past_decisions
+      │   └── subprocess: @arizeai/phoenix-mcp → list-traces
+      └── execute_tool draft_clarification
+          └── AsyncGenerateContent (Gemini sub-call)
 ```
-├── execute_tool check_receipt_coherence
-│   └── AsyncGenerateContent (Gemini sub-call)
-├── execute_tool check_employee_pattern (deterministic — by design)
-├── execute_tool review_past_decisions
-│   └── subprocess: @arizeai/phoenix-mcp → list-traces
-└── execute_tool draft_clarification
-└── AsyncGenerateContent (Gemini sub-call)
+
 Every span — including the nested Gemini sub-calls and the Phoenix MCP subprocess invocation — is captured by Phoenix Cloud via OpenInference instrumentation.
 
 **Required tech, all invoked at runtime:**
@@ -53,6 +55,7 @@ Every span — including the nested Gemini sub-calls and the Phoenix MCP subproc
 The `review_past_decisions` tool spawns `@arizeai/phoenix-mcp@latest` via `npx`, completes the MCP initialize handshake, calls the `list-traces` tool against the `apex-approve` Phoenix project, and returns a summary the agent uses as additional context.
 
 The agent is prompted to call this tool when any of these is true:
+
 - The employee has no prior history (new hire)
 - The vendor is unfamiliar or returns a typosquat signal
 - Initial confidence is below 0.70
@@ -84,12 +87,15 @@ All three run in parallel per fixture via `asyncio.gather`. Pro is the judge; Fl
 - Phoenix Cloud account ([app.phoenix.arize.com](https://app.phoenix.arize.com))
 
 ### Setup
+
 ```bash
 git clone https://github.com/woadi-vector/gemini-hackathon
 cd gemini-hackathon
 cp .env.example .env
 ```
+
 Edit `.env`:
+
 ```
 GOOGLE_GENAI_USE_VERTEXAI=1
 GOOGLE_CLOUD_PROJECT=your-gcp-project
@@ -99,13 +105,15 @@ PHOENIX_API_KEY=your-phoenix-api-key
 PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com/s/your-workspace
 PHOENIX_PROJECT_NAME=apex-approve
 ```
+
 Authenticate Vertex:
+
 ```bash
 gcloud auth application-default login --no-launch-browser
 ```
+
 Install dependencies:
-Install dependencies:
-Install dependencies:
+
 ```bash
 uv sync
 ```
@@ -115,10 +123,13 @@ uv sync
 ```bash
 uv run python fixtures/run_fixtures.py exp_002
 ```
+
 ### Run the full eval pipeline
+
 ```bash
 uv run python evals/run_evals.py
 ```
+
 This runs all five fixtures through the agent and grades each with all three evals in parallel. Takes 3–7 minutes depending on Phoenix MCP latency. Scores persist to Phoenix Cloud automatically.
 
 ## Fixtures
@@ -136,19 +147,20 @@ Five validated fixtures with structured ground truth:
 `exp_005` is the hero failure artifact: the agent gathers evidence, consults Phoenix, reasons in anchored language, and still approves. The eval catches it.
 
 ## Project structure
+
 ```
 agent/
 ├── main.py
 ├── instrumentation.py
 └── approve_demo/
-├── agent.py
-├── prompt.py
-└── tools/
-├── verify_vendor.py
-├── check_employee_pattern.py
-├── check_receipt_coherence.py
-├── draft_clarification.py
-└── review_past_decisions.py
+    ├── agent.py
+    ├── prompt.py
+    └── tools/
+        ├── verify_vendor.py
+        ├── check_employee_pattern.py
+        ├── check_receipt_coherence.py
+        ├── draft_clarification.py
+        └── review_past_decisions.py
 fixtures/
 ├── expenses.json
 └── run_fixtures.py
@@ -158,6 +170,7 @@ evals/
 ├── eval_reasoning.py
 └── run_evals.py
 ```
+
 ## What we learned
 
 The thing observability is supposed to catch isn't agents that fail loudly. It's agents that succeed surface-confidently while missing the underlying signal.
