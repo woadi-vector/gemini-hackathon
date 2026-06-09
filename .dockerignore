@@ -1,0 +1,11 @@
+.git
+.venv
+__pycache__
+*.pyc
+.env
+.env.example
+evals/__pycache__
+fixtures/__pycache__
+agent/__pycache__
+agent/approve_demo/__pycache__
+agent/approve_demo/tools/__pycache__
