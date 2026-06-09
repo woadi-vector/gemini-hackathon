@@ -28,17 +28,19 @@ The hero artifact: a fixture (`exp_005`) where the agent gathers all five tools'
 
 ## Architecture
 
+```
 agent_run [apex_approve_agent — Gemini 2.5 Flash on Vertex]
-└── call_llm (planner)
- ├── execute_tool verify_vendor
-│   └── AsyncGenerateContent (Gemini sub-call)
-├── execute_tool check_receipt_coherence
-│   └── AsyncGenerateContent (Gemini sub-call)
-     ├── execute_tool check_employee_pattern (deterministic — by design)
-├── execute_tool review_past_decisions
-│   └── subprocess: @arizeai/phoenix-mcp → list-traces
-└── execute_tool draft_clarification
-└── AsyncGenerateContent (Gemini sub-call)
+  └── call_llm (planner)
+      ├── execute_tool verify_vendor
+      │   └── AsyncGenerateContent (Gemini sub-call)
+      ├── execute_tool check_receipt_coherence
+      │   └── AsyncGenerateContent (Gemini sub-call)
+      ├── execute_tool check_employee_pattern (deterministic — by design)
+      ├── execute_tool review_past_decisions
+      │   └── subprocess: @arizeai/phoenix-mcp → list-traces
+      └── execute_tool draft_clarification
+          └── AsyncGenerateContent (Gemini sub-call)
+```
 
 Every span — including the nested Gemini sub-calls and the Phoenix MCP subprocess invocation — is captured by Phoenix Cloud via OpenInference instrumentation.
 
@@ -92,6 +94,8 @@ cp .env.example .env
 ```
 
 Edit `.env`:
+
+```
 GOOGLE_GENAI_USE_VERTEXAI=1
 GOOGLE_CLOUD_PROJECT=your-gcp-project
 GOOGLE_CLOUD_LOCATION=us-central1
@@ -99,6 +103,7 @@ GEMINI_MODEL=gemini-2.5-flash
 PHOENIX_API_KEY=your-phoenix-api-key
 PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com/s/your-workspace
 PHOENIX_PROJECT_NAME=apex-approve
+```
 
 Authenticate Vertex:
 
@@ -142,18 +147,19 @@ Five validated fixtures with structured ground truth:
 
 ## Project structure
 
+```
 agent/
 ├── main.py                                # ADK CLI entry
 ├── instrumentation.py                     # Phoenix register + GoogleGenAIInstrumentor
 └── approve_demo/
-├── agent.py                           # Agent + 5 tool registration
-├── prompt.py                          # System instruction (anti-flattery anchoring)
-└── tools/
-├── verify_vendor.py               # Gemini sub-call (fuzzy match)
-├── check_employee_pattern.py      # Deterministic (structuring detection)
-├── check_receipt_coherence.py     # Gemini sub-call (semantic comparison)
-├── draft_clarification.py         # Gemini sub-call (tailored questions)
-└── review_past_decisions.py       # Phoenix MCP — subprocess + JSON-RPC stdio
+    ├── agent.py                           # Agent + 5 tool registration
+    ├── prompt.py                          # System instruction (anti-flattery anchoring)
+    └── tools/
+        ├── verify_vendor.py               # Gemini sub-call (fuzzy match)
+        ├── check_employee_pattern.py      # Deterministic (structuring detection)
+        ├── check_receipt_coherence.py     # Gemini sub-call (semantic comparison)
+        ├── draft_clarification.py         # Gemini sub-call (tailored questions)
+        └── review_past_decisions.py       # Phoenix MCP — subprocess + JSON-RPC stdio
 fixtures/
 ├── expenses.json                          # 5 validated fixtures
 └── run_fixtures.py                        # Batch runner
@@ -162,6 +168,7 @@ evals/
 ├── eval_tool_selection.py
 ├── eval_reasoning.py
 └── run_evals.py                           # Unified runner — asyncio.gather parallel
+```
 
 ## What we learned
 
